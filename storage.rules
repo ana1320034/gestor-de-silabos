@@ -1,0 +1,32 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // ¿El usuario autenticado pertenece a la institución de esta carpeta?
+    function belongsToInstitution(institutionId) {
+      return request.auth != null
+        && firestore.get(/databases/(default)/documents/users/$(request.auth.uid))
+             .data.institutionId == institutionId;
+    }
+
+    // Documentos curriculares, aislados por institución
+    match /institutions/{institutionId}/documents/{allPaths=**} {
+      // Leer: cualquier miembro de la institución
+      allow read: if belongsToInstitution(institutionId);
+
+      // Subir: miembros de la institución, solo PDFs, máximo 20 MB
+      allow write: if belongsToInstitution(institutionId)
+        && request.resource.size < 20 * 1024 * 1024
+        && request.resource.contentType == 'application/pdf';
+
+      // Borrar: miembros de la institución
+      allow delete: if belongsToInstitution(institutionId);
+    }
+
+    // Todo lo demás sigue cerrado
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

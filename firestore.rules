@@ -1,0 +1,210 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ============================================================
+    // FUNCIONES DE AYUDA
+    // ============================================================
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function userData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function hasUserDoc() {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+
+    function isAdmin() {
+      return hasUserDoc() && userData().role == 'admin';
+    }
+
+    function isCoordinator() {
+      return hasUserDoc() && userData().role == 'coordinator';
+    }
+
+    function isTeacher() {
+      return hasUserDoc() && userData().role == 'teacher';
+    }
+
+    function sameInstitution() {
+      return hasUserDoc()
+        && resource.data.institutionId == userData().institutionId;
+    }
+
+    function creatingInOwnInstitution() {
+      return hasUserDoc()
+        && request.resource.data.institutionId == userData().institutionId;
+    }
+
+    // ── NUEVO (Etapa 2) ─────────────────────────────────────────
+    // ¿El programa indicado está en la lista de programas del usuario?
+    function inMyPrograms(programId) {
+      return hasUserDoc()
+        && programId in userData().get('programIds', []);
+    }
+
+    // ¿El documento EXISTENTE pertenece a un programa del usuario?
+    function resourceInMyPrograms() {
+      return inMyPrograms(resource.data.programId);
+    }
+
+    // ¿El documento que se intenta CREAR/GUARDAR pertenece a un
+    // programa del usuario?
+    function requestInMyPrograms() {
+      return inMyPrograms(request.resource.data.programId);
+    }
+
+    // ============================================================
+    // USUARIOS  (/users)
+    // ============================================================
+    match /users/{userId} {
+      allow read: if isSignedIn()
+        && (request.auth.uid == userId
+            || (isAdmin() && sameInstitution()));
+
+      allow create: if isAdmin() && creatingInOwnInstitution();
+
+      allow update: if isAdmin()
+        && sameInstitution()
+        && request.resource.data.institutionId == resource.data.institutionId;
+
+      allow delete: if isAdmin()
+        && sameInstitution()
+        && request.auth.uid != userId;
+    }
+
+    // ============================================================
+    // INSTITUCIONES  (/institutions)
+    // ============================================================
+    match /institutions/{institutionId} {
+      allow read: if hasUserDoc()
+        && userData().institutionId == institutionId;
+
+      allow update: if isAdmin()
+        && userData().institutionId == institutionId;
+
+      allow create, delete: if false;
+    }
+
+    // ============================================================
+    // FACULTADES  (/faculties) — solo admin gestiona
+    // ============================================================
+    match /faculties/{facultyId} {
+      allow read: if sameInstitution();
+
+      allow create: if isAdmin() && creatingInOwnInstitution();
+      allow update: if isAdmin()
+        && sameInstitution()
+        && request.resource.data.institutionId == resource.data.institutionId;
+      allow delete: if isAdmin() && sameInstitution();
+    }
+
+    // ============================================================
+    // PROGRAMAS  (/programs)
+    // ETAPA 2: crear programas es solo del admin (un programa nuevo
+    // no estaría en la lista de nadie). El coordinador puede editar
+    // los programas que estén en SU lista.
+    // ============================================================
+    match /programs/{programId} {
+      allow read: if sameInstitution();
+
+      allow create: if isAdmin() && creatingInOwnInstitution();
+
+      allow update: if sameInstitution()
+        && request.resource.data.institutionId == resource.data.institutionId
+        && (isAdmin()
+            || (isCoordinator() && inMyPrograms(programId)));
+
+      allow delete: if isAdmin() && sameInstitution();
+    }
+
+    // ============================================================
+    // SÍLABOS  (/syllabi)
+    // ETAPA 2: crear/editar limitado a los programas del usuario.
+    // ============================================================
+    match /syllabi/{syllabusId} {
+      // Leer: cualquier miembro de la institución.
+      allow read: if sameInstitution();
+
+      // Crear: admin en cualquier programa; coordinador y docente
+      // solo en programas de su lista, figurando como autores.
+      allow create: if creatingInOwnInstitution()
+        && request.resource.data.authorId == request.auth.uid
+        && (isAdmin()
+            || ((isCoordinator() || isTeacher()) && requestInMyPrograms()));
+
+      // Editar: el admin; el autor (sobre su propio sílabo);
+      // o un coordinador si el sílabo es de un programa suyo.
+      allow update: if sameInstitution()
+        && request.resource.data.institutionId == resource.data.institutionId
+        && (isAdmin()
+            || resource.data.authorId == request.auth.uid
+            || (isCoordinator() && resourceInMyPrograms()));
+
+      // Borrar: admin, o coordinador de un programa suyo.
+      allow delete: if sameInstitution()
+        && (isAdmin()
+            || (isCoordinator() && resourceInMyPrograms()));
+
+      // Historial de cambios dentro de cada sílabo
+      match /history/{entryId} {
+        allow read, create: if isSignedIn();
+        allow update, delete: if false;
+      }
+    }
+
+    // ============================================================
+    // ASIGNATURAS  (/courses)
+    // ETAPA 2: el coordinador solo gestiona asignaturas de sus programas.
+    // ============================================================
+    match /courses/{courseId} {
+      allow read: if sameInstitution();
+
+      allow create: if creatingInOwnInstitution()
+        && (isAdmin()
+            || (isCoordinator() && requestInMyPrograms()));
+
+      allow update: if sameInstitution()
+        && request.resource.data.institutionId == resource.data.institutionId
+        && (isAdmin()
+            || (isCoordinator() && resourceInMyPrograms()));
+
+      allow delete: if sameInstitution()
+        && (isAdmin()
+            || (isCoordinator() && resourceInMyPrograms()));
+    }
+
+    // ============================================================
+    // DOCUMENTOS  (/documents)
+    // ============================================================
+    match /documents/{docId} {
+      allow read: if sameInstitution();
+
+      allow create: if creatingInOwnInstitution()
+        && (isAdmin()
+            || ((isCoordinator() || isTeacher()) && requestInMyPrograms()));
+
+      allow update: if sameInstitution()
+        && request.resource.data.institutionId == resource.data.institutionId
+        && (isAdmin()
+            || (isCoordinator() && resourceInMyPrograms()));
+
+      allow delete: if sameInstitution()
+        && (isAdmin()
+            || (isCoordinator() && resourceInMyPrograms()));
+    }
+
+    // ============================================================
+    // REGLA FINAL: todo lo demás, negado.
+    // ============================================================
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gestor de Sílabos — Construcción curricular inteligente para instituciones educativas</title>
+<meta name="description" content="Plataforma para construir, revisar y aprobar sílabos académicos con asistencia de inteligencia artificial. Diseñada para instituciones educativas colombianas.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0e1526;          /* fondo profundo */
+    --ink-2: #141d33;        /* superficie */
+    --line: rgba(212,175,55,.22);
+    --gold: #d4af37;
+    --gold-deep: #b8912e;
+    --paper: #f6f1e4;        /* tono sílabo impreso */
+    --paper-ink: #22293b;
+    --text: #e8ebf2;
+    --muted: #9aa3b5;
+    --serif: 'Cormorant Garamond', Georgia, serif;
+    --sans: 'Inter', 'Segoe UI', sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body { background: var(--ink); color: var(--text); font-family: var(--sans); line-height: 1.65; font-size: 16px; }
+  img { max-width: 100%; }
+  a { color: var(--gold); }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 1.4rem; }
+  .eyebrow { font-size: .72rem; letter-spacing: .22em; text-transform: uppercase; color: var(--gold); font-weight: 600; }
+  h1, h2 { font-family: var(--serif); font-weight: 600; line-height: 1.12; }
+  .btn {
+    display: inline-block; background: var(--gold); color: #141004; font-weight: 600;
+    padding: .85rem 1.7rem; border-radius: 10px; text-decoration: none; font-size: .95rem;
+    transition: transform .15s ease, box-shadow .15s ease;
+  }
+  .btn:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(212,175,55,.25); }
+  .btn.ghost { background: transparent; color: var(--gold); border: 1px solid var(--line); }
+  .btn:focus-visible, a:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
+
+  /* ── Nav ── */
+  nav { position: sticky; top: 0; z-index: 20; background: rgba(14,21,38,.85); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255,255,255,.05); }
+  nav .wrap { display: flex; align-items: center; justify-content: space-between; height: 64px; }
+  .brand { font-family: var(--serif); font-size: 1.25rem; font-weight: 700; color: var(--text); text-decoration: none; }
+  .brand em { color: var(--gold); font-style: normal; }
+  nav .links a { color: var(--muted); text-decoration: none; font-size: .88rem; margin-left: 1.4rem; }
+  nav .links a:hover { color: var(--text); }
+  nav .links a.cta { color: var(--gold); font-weight: 600; }
+
+  /* ── Hero ── */
+  .hero { padding: 5.5rem 0 5rem; position: relative; overflow: hidden; }
+  .hero::before {
+    content: ''; position: absolute; inset: -20% -10% auto auto; width: 60%; height: 130%;
+    background: radial-gradient(closest-side, rgba(212,175,55,.10), transparent 70%);
+    pointer-events: none;
+  }
+  .hero .wrap { display: grid; grid-template-columns: 1.15fr .85fr; gap: 3.5rem; align-items: center; }
+  .hero h1 { font-size: clamp(2.4rem, 5vw, 3.6rem); margin: 1rem 0 1.2rem; }
+  .hero h1 .gold { color: var(--gold); }
+  .hero p.lead { color: var(--muted); font-size: 1.08rem; max-width: 34rem; }
+  .hero .actions { margin-top: 2rem; display: flex; gap: .9rem; flex-wrap: wrap; }
+  .hero .note { margin-top: 1rem; font-size: .8rem; color: var(--muted); }
+
+  /* Tarjeta firma: el sílabo que se construye */
+  .card-syllabus {
+    background: var(--ink-2); border: 1px solid var(--line); border-radius: 16px;
+    padding: 1.6rem 1.6rem 1.3rem; box-shadow: 0 30px 80px rgba(0,0,0,.45);
+    position: relative;
+  }
+  .card-syllabus .doc-title { font-family: var(--serif); font-size: 1.15rem; color: var(--text); }
+  .card-syllabus .doc-sub { font-size: .75rem; color: var(--muted); margin-bottom: 1.1rem; }
+  .card-syllabus ol { list-style: none; padding: 0; display: flex; flex-direction: column; gap: .55rem; }
+  .card-syllabus li {
+    display: flex; align-items: center; gap: .6rem; font-size: .85rem; color: var(--muted);
+    opacity: 0; transform: translateX(-6px); animation: stepIn .5s ease forwards;
+  }
+  .card-syllabus li .tick {
+    width: 18px; height: 18px; border-radius: 50%; flex-shrink: 0;
+    border: 1.5px solid var(--gold-deep); display: inline-flex; align-items: center; justify-content: center;
+    font-size: .62rem; color: var(--gold); background: rgba(212,175,55,.08);
+  }
+  .card-syllabus li:nth-child(1) { animation-delay: .3s; }
+  .card-syllabus li:nth-child(2) { animation-delay: .75s; }
+  .card-syllabus li:nth-child(3) { animation-delay: 1.2s; }
+  .card-syllabus li:nth-child(4) { animation-delay: 1.65s; }
+  .card-syllabus li:nth-child(5) { animation-delay: 2.1s; }
+  .card-syllabus li:nth-child(6) { animation-delay: 2.55s; }
+  .card-syllabus li:nth-child(7) { animation-delay: 3.0s; }
+  .card-syllabus li:nth-child(8) { animation-delay: 3.45s; }
+  .card-syllabus .stamp {
+    margin-top: 1.1rem; text-align: right; font-size: .72rem; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--gold); opacity: 0; animation: stepIn .6s ease 4s forwards;
+  }
+  @keyframes stepIn { to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) {
+    .card-syllabus li, .card-syllabus .stamp { animation: none; opacity: 1; transform: none; }
+  }
+
+  /* ── Secciones ── */
+  section { padding: 4.5rem 0; }
+  .sec-head { max-width: 40rem; margin-bottom: 2.6rem; }
+  .sec-head h2 { font-size: clamp(1.7rem, 3.4vw, 2.3rem); margin-top: .7rem; }
+  .sec-head p { color: var(--muted); margin-top: .8rem; }
+
+  /* Cómo funciona (secuencia real) */
+  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.4rem; }
+  .step { border: 1px solid rgba(255,255,255,.07); border-radius: 14px; padding: 1.5rem; background: var(--ink-2); }
+  .step .num { font-family: var(--serif); font-size: 2.2rem; color: var(--gold); line-height: 1; }
+  .step h3 { font-size: 1.02rem; margin: .8rem 0 .5rem; }
+  .step p { font-size: .88rem; color: var(--muted); }
+
+  /* Sección papel: funciones sobre "sílabo impreso" */
+  .paper { background: var(--paper); color: var(--paper-ink); }
+  .paper .eyebrow { color: var(--gold-deep); }
+  .paper h2 { color: #1b2233; }
+  .paper .sec-head p { color: #5a6172; }
+  .feats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.6rem 2rem; }
+  .feat { border-top: 2px solid var(--gold-deep); padding-top: 1rem; }
+  .feat h3 { font-size: .98rem; margin-bottom: .4rem; color: #1b2233; }
+  .feat p { font-size: .87rem; color: #5a6172; }
+
+  /* Roles */
+  .roles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.4rem; }
+  .role { border: 1px solid var(--line); border-radius: 14px; padding: 1.6rem; }
+  .role .tag { font-size: .72rem; letter-spacing: .15em; text-transform: uppercase; color: var(--gold); font-weight: 600; }
+  .role h3 { font-family: var(--serif); font-size: 1.35rem; margin: .5rem 0 .8rem; }
+  .role ul { padding-left: 1.1rem; color: var(--muted); font-size: .88rem; display: flex; flex-direction: column; gap: .45rem; }
+
+  /* Seguridad */
+  .security { border-top: 1px solid rgba(255,255,255,.06); border-bottom: 1px solid rgba(255,255,255,.06); background: linear-gradient(180deg, rgba(212,175,55,.045), transparent 60%); }
+  .sec-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.4rem; }
+  .sec-item { padding: 1.2rem 1.4rem; border-left: 2px solid var(--gold-deep); }
+  .sec-item h3 { font-size: .95rem; margin-bottom: .35rem; }
+  .sec-item p { font-size: .85rem; color: var(--muted); }
+
+  /* CTA final */
+  .cta-final { text-align: center; padding: 5.5rem 0; }
+  .cta-final h2 { font-size: clamp(1.8rem, 3.6vw, 2.5rem); max-width: 34rem; margin: .8rem auto 1rem; }
+  .cta-final p { color: var(--muted); max-width: 30rem; margin: 0 auto 2rem; }
+
+  footer { border-top: 1px solid rgba(255,255,255,.06); padding: 2rem 0 2.5rem; font-size: .8rem; color: var(--muted); }
+  footer .wrap { display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+  footer a { color: var(--muted); text-decoration: none; margin-left: 1.2rem; }
+  footer a:hover { color: var(--gold); }
+
+  @media (max-width: 880px) {
+    .hero .wrap { grid-template-columns: 1fr; gap: 2.5rem; }
+    .steps, .feats, .roles, .sec-grid { grid-template-columns: 1fr; }
+    nav .links a:not(.cta) { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <a class="brand" href="#">Gestor de <em>Sílabos</em></a>
+    <div class="links">
+      <a href="#como-funciona">Cómo funciona</a>
+      <a href="#roles">Para su equipo</a>
+      <a href="#seguridad">Seguridad</a>
+      <a class="cta" href="#contacto">Solicitar demostración</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap">
+    <div>
+      <span class="eyebrow">Plataforma de gestión curricular</span>
+      <h1>Los sílabos de su institución, <span class="gold">construidos con método</span> y asistidos por IA.</h1>
+      <p class="lead">Gestor de Sílabos guía a cada docente por las ocho secciones de un sílabo completo, propone contenido curricular con inteligencia artificial y lleva el documento por el ciclo de revisión y aprobación — todo en un solo lugar, sin correos ni versiones perdidas.</p>
+      <div class="actions">
+        <a class="btn" href="#contacto">Solicitar una demostración</a>
+        <a class="btn ghost" href="#como-funciona">Ver cómo funciona</a>
+      </div>
+      <p class="note">Diseñado para universidades, colegios e instituciones de formación en Colombia.</p>
+    </div>
+
+    <!-- Elemento firma: el sílabo que se completa -->
+    <div class="card-syllabus" aria-label="Índice de un sílabo completándose">
+      <div class="doc-title">Sílabo — Cálculo Integral</div>
+      <div class="doc-sub">Ingeniería de Sistemas · Guardado automático</div>
+      <ol>
+        <li><span class="tick">✓</span> Información general</li>
+        <li><span class="tick">✓</span> Horas por modalidad</li>
+        <li><span class="tick">✓</span> Articulación curricular</li>
+        <li><span class="tick">✓</span> Unidades temáticas</li>
+        <li><span class="tick">✓</span> Enfoque metodológico</li>
+        <li><span class="tick">✓</span> Sistema de evaluación</li>
+        <li><span class="tick">✓</span> Cronograma semanal</li>
+        <li><span class="tick">✓</span> Vista previa</li>
+      </ol>
+      <div class="stamp">Enviado a revisión →</div>
+    </div>
+  </div>
+</header>
+
+<section id="como-funciona">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">Cómo funciona</span>
+      <h2>Del documento institucional al sílabo aprobado, en tres pasos.</h2>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <div class="num">1</div>
+        <h3>La institución define su estructura</h3>
+        <p>Facultades, programas, asignaturas y usuarios con sus roles. Los documentos rectores — PEP, plan de estudios — se cargan al repositorio y la IA extrae sus competencias y resultados de aprendizaje.</p>
+      </div>
+      <div class="step">
+        <div class="num">2</div>
+        <h3>El docente construye con asistencia</h3>
+        <p>El constructor guía sección por sección. El asistente de IA propone propósitos formativos, resultados de aprendizaje, unidades temáticas y rúbricas; el docente ajusta con su criterio. Todo se guarda automáticamente.</p>
+      </div>
+      <div class="step">
+        <div class="num">3</div>
+        <h3>El coordinador revisa y aprueba</h3>
+        <p>El sílabo se envía a revisión desde la plataforma. Las observaciones quedan vinculadas a cada sección, el docente corrige, y el ciclo termina con un documento aprobado y trazable.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="paper">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">Lo que resuelve</span>
+      <h2>Menos versiones perdidas. Más coherencia curricular.</h2>
+      <p>Las capacidades de la plataforma, al servicio del proceso académico real.</p>
+    </div>
+    <div class="feats">
+      <div class="feat">
+        <h3>Asistente de IA curricular</h3>
+        <p>Propuestas de contenido alineadas con el proyecto educativo, generadas en segundos y siempre editables por el docente.</p>
+      </div>
+      <div class="feat">
+        <h3>Repositorio documental</h3>
+        <p>PEP, planes de estudio y lineamientos en un solo lugar, con análisis automático de competencias y resultados.</p>
+      </div>
+      <div class="feat">
+        <h3>Revisión con trazabilidad</h3>
+        <p>Observaciones por sección, estados claros — borrador, en revisión, devuelto, aprobado — e historial de cambios.</p>
+      </div>
+      <div class="feat">
+        <h3>Guardado automático</h3>
+        <p>El trabajo del docente se guarda mientras escribe. Sin botón de guardar que olvidar, sin trabajo perdido.</p>
+      </div>
+      <div class="feat">
+        <h3>Gestión de la rotación docente</h3>
+        <p>Cuentas que se desactivan y reactivan por período académico, conservando intacto el historial curricular.</p>
+      </div>
+      <div class="feat">
+        <h3>Identidad institucional</h3>
+        <p>La plataforma opera con el logo y la estructura de cada institución. Sus docentes trabajan en un espacio propio.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="roles">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">Para su equipo</span>
+      <h2>Cada rol encuentra su lugar.</h2>
+    </div>
+    <div class="roles">
+      <div class="role">
+        <span class="tag">Docente</span>
+        <h3>Construir sin fricción</h3>
+        <ul>
+          <li>Constructor guiado de ocho secciones</li>
+          <li>Propuestas de IA editables en cada paso</li>
+          <li>Sus sílabos, en todos los estados, en un solo panel</li>
+        </ul>
+      </div>
+      <div class="role">
+        <span class="tag">Coordinador académico</span>
+        <h3>Revisar con criterio</h3>
+        <ul>
+          <li>Sílabos pendientes de sus programas asignados</li>
+          <li>Observaciones vinculadas a la sección exacta</li>
+          <li>Devolución y aprobación con un clic</li>
+        </ul>
+      </div>
+      <div class="role">
+        <span class="tag">Administrador</span>
+        <h3>Gobernar la estructura</h3>
+        <ul>
+          <li>Facultades, programas y asignaturas centralizados</li>
+          <li>Usuarios por rol y por programa</li>
+          <li>Visibilidad completa del estado curricular</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="security" id="seguridad">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">Seguridad y cumplimiento</span>
+      <h2>Los datos de su institución, solo para su institución.</h2>
+    </div>
+    <div class="sec-grid">
+      <div class="sec-item">
+        <h3>Aislamiento verificado</h3>
+        <p>La separación de datos entre instituciones se aplica en la capa de base de datos y está verificada mediante un protocolo documentado, disponible a solicitud.</p>
+      </div>
+      <div class="sec-item">
+        <h3>Copias de seguridad diarias</h3>
+        <p>La información se respalda automáticamente todos los días, con retención rotativa.</p>
+      </div>
+      <div class="sec-item">
+        <h3>Protección de datos personales</h3>
+        <p>Tratamiento conforme a la Ley 1581 de 2012 (Habeas Data), con política publicada y canal de atención al titular.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="cta-final" id="contacto">
+  <div class="wrap">
+    <span class="eyebrow">Siguiente paso</span>
+    <h2>Conozca la plataforma con sus propios programas académicos.</h2>
+    <p>Solicite una demostración y construyamos juntos el primer sílabo de su institución.</p>
+    <a class="btn" href="mailto:[correo de contacto]?subject=Solicitud%20de%20demostraci%C3%B3n%20%E2%80%94%20Gestor%20de%20S%C3%ADlabos">Solicitar una demostración</a>
+    <p style="margin-top:1.2rem; font-size:.85rem;">O escríbanos por WhatsApp: <a href="[enlace de WhatsApp]">[número]</a></p>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <span>© Gestor de Sílabos — [razón social]. Todos los derechos reservados.</span>
+    <span>
+      <a href="/terminos.html">Términos y Condiciones</a>
+      <a href="/privacidad.html">Política de Datos Personales</a>
+      <a href="/">Iniciar sesión</a>
+    </span>
+  </div>
+</footer>
+
+</body>
+</html>
