@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Resumen Ejecutivo - Gestor de Sílabos SaaS</title>
+  <style>
+    :root {
+      --primary: #0f172a;
+      --accent: #d4af37;
+      --accent-dark: #b08d28;
+      --text: #334155;
+      --text-dark: #0f172a;
+      --bg-light: #f8fafc;
+      --border: #e2e8f0;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      color: var(--text);
+      line-height: 1.6;
+      background-color: #f1f5f9;
+      padding: 20px;
+    }
+
+    .page {
+      max-width: 850px;
+      margin: 0 auto;
+      background: #ffffff;
+      padding: 50px 60px;
+      border-radius: 8px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+      position: relative;
+    }
+
+    .toolbar {
+      max-width: 850px;
+      margin: 0 auto 20px auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .btn-print {
+      background: linear-gradient(135deg, #d4af37, #b08d28);
+      color: #000;
+      border: none;
+      padding: 12px 24px;
+      font-weight: 700;
+      font-size: 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+
+    .btn-print:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(212, 175, 55, 0.4);
+    }
+
+    .header-bar {
+      border-bottom: 3px solid var(--accent);
+      padding-bottom: 20px;
+      margin-bottom: 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+    }
+
+    .title-area h1 {
+      font-size: 26px;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+
+    .title-area p {
+      font-size: 14px;
+      color: #64748b;
+      font-weight: 600;
+    }
+
+    .meta-box {
+      text-align: right;
+      font-size: 13px;
+      color: #475569;
+    }
+
+    .meta-box strong {
+      color: var(--primary);
+    }
+
+    .badge-saas {
+      display: inline-block;
+      background: rgba(212, 175, 55, 0.15);
+      color: #856404;
+      border: 1px solid #d4af37;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    h2 {
+      font-size: 18px;
+      color: var(--primary);
+      margin: 25px 0 12px 0;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    p {
+      margin-bottom: 14px;
+      font-size: 14px;
+      text-align: justify;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 16px 0;
+    }
+
+    .card {
+      background: var(--bg-light);
+      border-left: 4px solid var(--accent);
+      padding: 16px;
+      border-radius: 4px;
+    }
+
+    .card h3 {
+      font-size: 15px;
+      color: var(--primary);
+      margin-bottom: 6px;
+    }
+
+    .card p {
+      font-size: 13px;
+      margin-bottom: 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 18px 0;
+      font-size: 13px;
+    }
+
+    th, td {
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      text-align: left;
+    }
+
+    th {
+      background-color: var(--primary);
+      color: #ffffff;
+      font-weight: 600;
+    }
+
+    tr:nth-child(even) {
+      background-color: var(--bg-light);
+    }
+
+    .highlight-box {
+      background: linear-gradient(135deg, #0f172a, #1e293b);
+      color: #ffffff;
+      padding: 20px;
+      border-radius: 8px;
+      margin: 25px 0;
+    }
+
+    .highlight-box h3 {
+      color: var(--accent);
+      font-size: 16px;
+      margin-bottom: 8px;
+    }
+
+    .highlight-box ul {
+      list-style-type: none;
+      padding-left: 0;
+    }
+
+    .highlight-box li {
+      font-size: 13px;
+      margin-bottom: 6px;
+      position: relative;
+      padding-left: 20px;
+    }
+
+    .highlight-box li::before {
+      content: "✓";
+      color: var(--accent);
+      position: absolute;
+      left: 0;
+      font-weight: bold;
+    }
+
+    .footer-sign {
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: #64748b;
+    }
+
+    @media print {
+      body {
+        background: #ffffff;
+        padding: 0;
+      }
+      .toolbar {
+        display: none !important;
+      }
+      .page {
+        box-shadow: none;
+        padding: 0;
+        max-width: 100%;
+      }
+      @page {
+        size: A4;
+        margin: 1.5cm;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="toolbar">
+    <span style="font-size: 14px; font-weight: 600; color: #475569;">Vista Previa de Impresión PDF</span>
+    <button class="btn-print" onclick="window.print()">
+      🖨️ Descargar en Formato PDF
+    </button>
+  </div>
+
+  <div class="page">
+    <div class="badge-saas">Informe Ejecutivo SaaS</div>
+    
+    <div class="header-bar">
+      <div class="title-area">
+        <h1>Gestor de Sílabos SaaS</h1>
+        <p>Transformación Curricular e Inteligencia Artificial en la Nube</p>
+      </div>
+      <div class="meta-box">
+        <p><strong>Destinatario:</strong> Ana María Ordóñez</p>
+        <p><strong>Fecha:</strong> 29 de Julio, 2026</p>
+        <p><strong>Estado:</strong> Propuesta Ejecutiva</p>
+      </div>
+    </div>
+
+    <h2>1. Visión del Producto SaaS</h2>
+    <p>
+      El <strong>Gestor de Sílabos SaaS</strong> es una solución tecnológica multi-institucional diseñada para modernizar, estandarizar y automatizar el diseño curricular en educación superior y colegios. Transforma un trámite administrativo complejo en un proceso ágil, asistido por <strong>Inteligencia Artificial (Google Gemini)</strong> y alineado con los estándares del Proyecto Educativo del Programa (PEP).
+    </p>
+
+    <h2>2. Pilares Fundamentales de la Plataforma</h2>
+    
+    <div class="grid-2">
+      <div class="card">
+        <h3>🧠 Copiloto Curricular con IA</h3>
+        <p>Generación de resultados de aprendizaje (Taxonomía de Bloom), propósitos formativos y rúbricas de evaluación detalladas en segundos.</p>
+      </div>
+      <div class="card">
+        <h3>🏢 Arquitectura Multi-Tenant</h3>
+        <p>Aislamiento total de datos por institución, garantizando máxima seguridad, privacidad y cumplimiento de Habeas Data.</p>
+      </div>
+      <div class="card">
+        <h3>👥 Gobierno y Flujo Académico</h3>
+        <p>Control de roles (Admin, Coordinador, Docente) con sistema de revisión, corrección y aprobación formal de sílabos.</p>
+      </div>
+      <div class="card">
+        <h3>📄 Repositorio y Exportación</h3>
+        <p>Almacenamiento centralizado, control de versiones e impresión/exportación inmediata a formatos oficiales en PDF.</p>
+      </div>
+    </div>
+
+    <h2>3. Arquitectura Técnica y Seguridad</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Capas del Sistema</th>
+          <th>Tecnología</th>
+          <th>Ventaja Operativa / Seguridad</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Frontend</strong></td>
+          <td>React + Vite (Single Page App)</td>
+          <td>Carga ultrarrápida, interfaz fluida y respuesta en tiempo real.</td>
+        </tr>
+        <tr>
+          <td><strong>Backend & Base de Datos</strong></td>
+          <td>Firebase (Firestore, Auth, Storage)</td>
+          <td>Escalabilidad sin servidores dedicados y reglas de seguridad por institución.</td>
+        </tr>
+        <tr>
+          <td><strong>Blindaje de IA</strong></td>
+          <td>Cloudflare Worker Proxy</td>
+          <td>Protege las claves de API y valida consumo de la cuota con tokens de sesión.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>4. Hoja de Ruta Comercial (Roadmap)</h2>
+    <p>
+      El proyecto está estructurado en 4 fases metodológicas para minimizar el riesgo y acelerar la salida al mercado:
+    </p>
+    <ul>
+      <li><strong>Fase 1 (Seguridad Completa):</strong> Reglas de Firestore por rol e institución cerradas con éxito.</li>
+      <li><strong>Fase 2 (Prueba Piloto):</strong> Despliegue en hosting y prueba real con 2-3 docentes en una institución aliada.</li>
+      <li><strong>Fase 3 (Lanzamiento Comercial):</strong> Landing page pública, autoservicio de onboarding e integración de pasarela de pagos.</li>
+      <li><strong>Fase 4 (Operación Sostenible):</strong> Dominio propio, auditorías de seguridad y acuerdos de servicio (SLA).</li>
+    </ul>
+
+    <div class="highlight-box">
+      <h3>Propuesta de Valor para la Institución</h3>
+      <ul>
+        <li><strong>Para Vicerrectores / Decanos:</strong> Estandarización del 100% del currículo institucional y simplificación de procesos de acreditación.</li>
+        <li><strong>Para Coordinadores:</strong> Tablero de control en tiempo real para la revisión y trazabilidad de los sílabos.</li>
+        <li><strong>Para Docentes:</strong> Reducción del tiempo de elaboración de 10 horas a menos de 45 minutos gracias al asistente de IA.</li>
+      </ul>
+    </div>
+
+    <div class="footer-sign">
+      <div><strong>Elaborado por:</strong> Equipo de Desarrollo Gestor de Sílabos</div>
+      <div><strong>Documento Confidencial</strong> — Preparado para Ana María Ordóñez</div>
+    </div>
+  </div>
+
+</body>
+</html>

@@ -1,0 +1,47 @@
+🗺️ Hoja de ruta: Gestor de Sílabos → SaaS en producción
+FASE 1 — Cerrar la seguridad (1 sesión) ✅ casi lista
+
+Reglas de Firestore por rol e institución ✅ Hecho
+Storage cerrado ✅ Hecho
+Bug del admin ✅ Hecho
+Modelo de pertenencias Etapa 1 (usuarios y sílabos con programas) ✅ Hecho
+Publicar el bloque de reglas de courses (pendiente, 5 min)
+Etapa 2: reglas que limiten a docentes/coordinadores a sus programas
+Guardar copias locales actualizadas de todas las reglas en firebase-rules/
+
+FASE 2 — Robustez mínima para usuarios reales (2-3 sesiones)
+
+Recuperación de contraseña (botón "olvidé mi clave" en el login)
+Proteger el Cloudflare Worker (que solo tu app pueda usar tu cuota de Gemini)
+Alertas de presupuesto en Firebase/Google Cloud (5 min, gran tranquilidad)
+Migrar PDFs a Storage + reemplazar la regla "negar todo" por permisos por institución
+Manejo de errores en pantalla (error boundaries — mensajes amables, no pantallas rotas)
+Respaldos automáticos de Firestore
+
+FASE 3 — Salir al mundo (1-2 sesiones)
+
+Publicar en Firebase Hosting (dirección web real, adiós npm run dev)
+Prueba piloto: 2-3 docentes reales, una semana, recoger problemas
+Corregir lo que el piloto encuentre
+
+FASE 4 — Convertirla en SaaS multi-institución (2-4 sesiones)
+
+Onboarding de instituciones: hoy crear una institución es manual en la consola; diseñar el flujo "llega un cliente nuevo" (¿se registra solo? ¿tú lo activas? — decisión de negocio primero, código después)
+Página pública / landing: qué ve alguien que llega sin cuenta (hoy solo hay login)
+Separación de datos verificada: prueba formal con 2 instituciones de mentira confirmando que ninguna ve nada de la otra (las reglas ya lo hacen; hay que demostrarlo)
+Plan de suscripción y cobro: definir precios y cómo se factura (puede empezar manual — factura y activación a mano — sin pasarela de pagos al inicio)
+Dominio propio (ej. gestordesilabos.com)
+
+FASE 5 — Operación sostenible (continuo)
+
+Red de seguridad técnica: acordar con un freelance de confianza unas horas de disponibilidad para emergencias
+Términos de servicio y aviso de privacidad (Habeas Data — revisar con apoyo legal)
+Monitoreo: revisar semanalmente el uso y errores en la consola de Firebase (te armo una rutina de 15 min)
+README, documentación básica y pruebas automatizadas — importa más cuando alguien más toque el código
+
+
+Tres notas sobre el orden:
+
+El piloto (15) va antes que el SaaS (Fase 4) a propósito: valida con usuarios reales de una institución antes de invertir en infraestructura multi-cliente. Si el piloto revela que algo del producto debe cambiar, mejor saberlo antes.
+El punto 17 (onboarding) es el único con decisiones de negocio grandes — cuando lleguemos ahí, la conversación empieza por cómo quieres vender, no por código.
+Al ritmo de sesiones como la de hoy, las Fases 1-3 son unas 4-6 sesiones; la Fase 4 depende de tus decisiones comerciales.
